@@ -38,6 +38,17 @@ AI が **計画・振り返り・改善** のプロセスを支援します。
 - AI を活用しつつ品質と説明責任を担保したい **テックリード / スクラムマスター**
 - アジャイルの規律を維持したい **個人開発者**
 
+## 設計ドキュメント
+
+aigile の開発フロー、設計判断、設定モデルの詳細は [docs/](docs/) を参照してください。
+
+- [concepts.md](docs/concepts.md) — コアコンセプト（SoT、Issue の 2 種別、不変条件）
+- [workflow.md](docs/workflow.md) — 10 ステップ開発フローと全体図
+- [layers.md](docs/layers.md) — 4 層 Document モデルと Spec Kit マッピング
+- [stakeholders.md](docs/stakeholders.md) — 承認モデルと設定ファイル仕様
+- [escalation.md](docs/escalation.md) — エスカレーション機構
+- [open-questions.md](docs/open-questions.md) — 未確定事項
+
 ## ステータス
 
 🚧 **本プロジェクトは初期構築フェーズです。** 仕様・インターフェースは大きく変わる可能性があります。
