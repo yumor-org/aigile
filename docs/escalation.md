@@ -4,11 +4,11 @@
 
 ## 基本原理: マージ済みか否かで分岐
 
-aigile では、対象 Document が **main にマージ済みか否か** によって対処モードが分かれます。
+aigile では、対象 Document が **ベースブランチ**（デフォルト `main`、[project-config.md](project-config.md) で設定可能）に **マージ済みか否か** によって対処モードが分かれます。
 
 ```mermaid
 flowchart TD
-    Start([下位作業中に問題検出]) --> Q{対象 Document は<br/>main にマージ済み?}
+    Start([下位作業中に問題検出]) --> Q{対象 Document は<br/>ベースブランチにマージ済み?}
     Q -->|No: まだ PR 段階| InPR[作業中の PR / Issue 内で議論し<br/>現在の PR を修正]
     Q -->|Yes: 合意済み契約| Esc[エスカレーション Issue 起票]
     Esc --> CloseSrc[検出元 PR を Close]
@@ -113,7 +113,7 @@ sequenceDiagram
     participant EI as エスカレーション Issue
     participant Lead as 上位レイヤー責任者
     participant FixPR as Document 修正 PR
-    participant Doc as 上位 Document (main)
+    participant Doc as 上位 Document (ベースブランチ)
 
     AI->>SrcPR: 作業中に矛盾/不整合を検出
     AI->>SrcPR: Close (一律)

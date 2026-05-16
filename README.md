@@ -46,6 +46,7 @@ aigile の開発フロー、設計判断、設定モデルの詳細は [docs/](d
 - [workflow.md](docs/workflow.md) — 10 ステップ開発フローと全体図
 - [layers.md](docs/layers.md) — 4 層 Document モデルと Spec Kit マッピング
 - [stakeholders.md](docs/stakeholders.md) — 承認モデルと設定ファイル仕様
+- [project-config.md](docs/project-config.md) — プロジェクト全体設定（ベースブランチ等）
 - [escalation.md](docs/escalation.md) — エスカレーション機構
 - [open-questions.md](docs/open-questions.md) — 未確定事項
 

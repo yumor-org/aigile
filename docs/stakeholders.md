@@ -11,6 +11,8 @@ aigile では、各 Document レイヤーの承認者をリポジトリごとに
 | `.aigile/agents.yml` | エージェントカタログ | 利用可能な AI エージェントの実装参照（workflow ファイル、モデル等） |
 | `.aigile/stakeholders.yml` | 承認ポリシー | レイヤーごとの承認者・承認数・eligible リスト |
 
+なお、リポジトリ全体に関わる設定（ベースブランチ名等）は別途 `.aigile/config.yml` で管理します。[project-config.md](project-config.md) を参照してください。
+
 分離の利点:
 
 1. **エージェントの再利用性** — 同一エージェントを複数レイヤーで参照可能
