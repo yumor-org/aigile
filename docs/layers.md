@@ -16,12 +16,12 @@ Details はオプションです。多くのプロジェクトでは、詳細は
 ## レイヤー間の依存関係
 
 ```mermaid
-flowchart TD
-    R["<b>Requirement</b><br/>なぜ・何を<br/><i>人間中心の合意</i>"] --> S["<b>Specification</b><br/>何を提供するか<br/><i>Requirement を満たす振る舞い</i>"]
-    S --> A["<b>Architecture</b><br/>どう作るか<br/><i>Specification を実現する構造</i>"]
-    A --> D["<b>(Details)</b><br/>詳細設計<br/><i>任意、Architecture を分解</i>"]
-    D --> Impl["<b>実装</b><br/>コード + テスト"]
-    A -.->|Details 省略時| Impl
+flowchart BT
+    Impl["<b>実装</b><br/>コード + テスト"] --> D["<b>(Details)</b><br/>詳細設計<br/><i>任意、Architecture を分解</i>"]
+    D --> A["<b>Architecture</b><br/>どう作るか<br/><i>Specification を実現する構造</i>"]
+    A --> S["<b>Specification</b><br/>何を提供するか<br/><i>Requirement を満たす振る舞い</i>"]
+    S --> R["<b>Requirement</b><br/>なぜ・何を<br/><i>人間中心の合意</i>"]
+    Impl -.->|Details 省略時| A
 
     classDef invariant fill:#ffebee,stroke:#c62828,stroke-width:2px
     classDef normal fill:#e8f5e9,stroke:#388e3c
@@ -33,7 +33,7 @@ flowchart TD
     class Impl code
 ```
 
-赤枠の Requirement は **承認者が人間に限定** される不変条件レイヤーです。下位レイヤーは上位レイヤーを満たす形で導出されます。下位作業中に上位の矛盾/欠陥が発覚した場合は [escalation.md](escalation.md) のフローで処理します。
+矢印は **依存方向** を表します。下位レイヤー（実装/Details）は上位レイヤー（Architecture/Specification/Requirement）を満たすために存在するので、下位から上位へ依存します。赤枠の Requirement は **承認者が人間に限定** される不変条件レイヤーです。下位作業中に上位の矛盾/欠陥が発覚した場合は [escalation.md](escalation.md) のフローで処理します。
 
 ## Spec Kit との対応関係
 
