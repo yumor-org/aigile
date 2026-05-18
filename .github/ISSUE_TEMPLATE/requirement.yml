@@ -1,32 +1,17 @@
-name: "Requirement Issue（追加の要求 / ストーリー）"
+name: "Requirement Issue（追加の要求）"
 description: "新しく欲しい機能や変更の要求を起票します。aigile の Requirement レイヤーの起点になる Issue です。"
-title: "[Requirement] "
+title: "[REQ] xxx"
 labels:
-  - requirement
+  - aigile:issue:requirement
 body:
-  - type: markdown
-    attributes:
-      value: |
-        ## このテンプレートについて
-
-        aigile における **Requirement Issue（追加の要求）** の起票テンプレートです。
-        Requirement レイヤーは **「誰が・何を・なぜ望むか」** を扱う層で、
-        ここでの記述が AI による分析を経て **Requirement Document** に取り込まれます。
-
-        - 起票後の流れ: [docs/workflow.md](../blob/main/docs/workflow.md)
-        - Issue と Document の関係: [docs/concepts.md](../blob/main/docs/concepts.md)
-        - レイヤー構造: [docs/layers.md](../blob/main/docs/layers.md)
-
-        Requirement Issue の終端状態は **Accepted-Closed**（Document 取り込み完了）
-        または **Rejected-Closed**（却下）です。
-
   - type: textarea
     id: summary
     attributes:
       label: 概要 (Summary)
       description: |
         この要求を 1〜2 行で要約してください。Issue タイトルの補足や、議論の入り口になります。
-      placeholder: "例) ログイン時に SSO（Google）を利用できるようにしたい"
+      placeholder: |
+        例) ログイン時に SSO（Google）を利用できるようにしたい。
     validations:
       required: true
 
@@ -51,7 +36,8 @@ body:
       description: |
         対象ユーザーが何をできるようになりたいかを記述してください。
         具体的な実装方法ではなく **振る舞い** として書くと AI 分析が進めやすくなります。
-      placeholder: "例) Google アカウントを用いて、パスワード入力なしでログインできるようにしたい"
+      placeholder: |
+        例) Google アカウントを用いて、パスワード入力なしでログインできるようにしたい。
     validations:
       required: true
 
@@ -63,8 +49,7 @@ body:
         なぜこの要求が必要か、どのような価値があるかを記述してください。
         ビジネス的価値・ユーザー体験・運用課題など、動機が伝わるように書いてください。
       placeholder: |
-        例)
-        パスワード管理の手間を減らし、退職時のアカウント無効化を SSO 側で一元的に実施できるようにするため。
+        例) パスワード管理の手間を減らし、退職時のアカウント無効化を SSO 側で一元的に実施できるようにするため。
     validations:
       required: true
 
@@ -101,7 +86,7 @@ body:
     attributes:
       label: 関連 Document / Issue / PR
       description: |
-        既存の Requirement / Specification / Architecture Document、関連 Issue や PR への参照を記載してください。
+        既存の Requirement / Specification / Architecture Document、関連 Issue や PR への参照があれば記載してください。
         トレーサビリティの起点になります（[docs/concepts.md](../blob/main/docs/concepts.md)）。
       placeholder: |
         - docs/requirements/auth.md
@@ -119,19 +104,3 @@ body:
         AI からの質問への回答を後から追記しても構いません。
     validations:
       required: false
-
-  - type: markdown
-    attributes:
-      value: |
-        ---
-
-        ### AI 分析エリア（起票後、AI が更新します）
-
-        起票後、AI が以下のセクションを Issue コメントまたは本文末尾に追記・更新します。
-        起票者は事前に記入する必要はありません。
-
-        - 未解決質問数（`unresolved_questions: N`）
-        - 質問スレッド要約
-        - Requirement Document 候補へのリンク
-
-        判定ロジックは [docs/discussions/02-requirement-ready-trigger.md](../blob/main/docs/discussions/02-requirement-ready-trigger.md) を参照してください。
