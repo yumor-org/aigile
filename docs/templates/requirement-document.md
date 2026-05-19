@@ -1,0 +1,100 @@
+# Requirement Document テンプレート
+
+`.aigile/docs/requirements/<slug>.md` として配置される Requirement Document の標準フォーマット。aigile の 10 ステップフロー（`docs/workflow.md`）における **ステップ 4 (Requirement Document 作成)** の成果物テンプレート。
+
+## 配置とファイル名
+
+- パス: `.aigile/docs/requirements/<slug>.md`
+- `<slug>` は Issue タイトルから `[REQ]` を取り除き、ASCII 英小文字のケバブケースに変換する。
+  - 例: `[REQ] SSO ログイン対応` → `sso-login.md`
+  - 例: `[REQ] 通知の頻度を制御したい` → `notification-frequency.md`
+- 日本語のみで意味の通る英訳が難しい場合は Issue 番号を併用する。
+  - 例: `issue-42-<short-slug>.md`
+- 既存 Document が同一トピックを扱う場合は **新規作成ではなく追記/更新** を選択する（重複 Document を生まない）。
+
+## テンプレート
+
+```markdown
+# Requirement: <タイトル（[REQ] プレフィックスは除く）>
+
+| 項目         | 値                                           |
+| ------------ | -------------------------------------------- |
+| Issue        | #<issue 番号>                                |
+| Status       | Draft                                        |
+| Last Updated | <YYYY-MM-DD（bash `date +%Y-%m-%d` で取得）> |
+
+## 概要
+
+<Issue の 概要 を整理した文章。1〜2 行。>
+
+## 対象ユーザー (As a ...)
+
+<ペルソナ / ロール。Issue 内容と質問への回答を統合。>
+
+## 要求内容 (I want ...)
+
+<実装手段ではなく振る舞いとして記述。>
+
+## 目的・価値 (So that ...)
+
+<ビジネス価値・ユーザー価値・運用価値のいずれか or 複数。>
+
+## 受け入れ基準 (Acceptance Criteria)
+
+- [ ] <観測可能な条件 1>
+- [ ] <観測可能な条件 2>
+- [ ] <観測可能な条件 3>
+
+## スコープ外 (Out of Scope)
+
+- <意図的に含めない事項 1>
+- <意図的に含めない事項 2>
+
+## 関連
+
+- 起点 Issue: #<issue 番号>
+- <Issue の "関連 Document / Issue / PR" セクションで言及されたリンク>
+
+## 議論の経緯
+
+- <Issue コメントスレッドで得られた重要な合意・前提を箇条書きで要約>
+- <AI が起票者に確認した主な事項と、得られた結論>
+```
+
+## 記述ルール
+
+- 起点 Issue 番号は実際の番号に置き換える。
+- Issue 本文・コメントスレッドで明示されていない事項を勝手に補完しない。事実が不足していれば Requirement Document には進まず、Issue 上で起票者に追加質問する。
+- 受け入れ基準は **観測可能な条件** として書く。「実装上の指針」ではなく「満たされたか否かが第三者から判定可能」かを基準にする。
+- 関連リンクは Issue 内に書かれたものだけを記載する。捏造禁止。
+- Status は人間レビュアーが承認するまで `Draft` のまま。Requirement レイヤーの承認は **人間限定（不変条件）**（`docs/concepts.md`、`docs/stakeholders.md`）。
+
+## PR 化のメタデータ
+
+Requirement Document を作成する後段ワークフローは、以下のメタデータで PR を発行する想定:
+
+- **タイトル**: `[Requirement] <タイトル>`
+- **ラベル**: `aigile:doc:requirement`, `automation`
+- **状態**: Draft
+- **ベースブランチ**: `main`
+- **本文テンプレート**:
+
+```markdown
+## 概要
+
+Requirement Issue #<issue 番号> を受けて、Requirement Document を作成した。
+
+## 変更内容
+
+- `.aigile/docs/requirements/<slug>.md` を新規作成 / 更新
+
+## レビューポイント
+
+- Requirement レイヤーは **人間承認が不変条件** です（`docs/concepts.md`、`docs/stakeholders.md`）。
+- 振る舞い記述として読めるか、実装に踏み込みすぎていないかを確認してください。
+- 受け入れ基準が観測可能な条件として書けているかを確認してください。
+
+## クローズ
+
+Closes #<issue 番号>
+```
