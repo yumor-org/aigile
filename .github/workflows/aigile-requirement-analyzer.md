@@ -1,38 +1,38 @@
 ---
-name: Aigile Requirement Analyzer
+name: aigile Requirement Analyzer
 description: |
-  Requirement Issue (label: aigile:issue:requirement) を分析する自律ワークフロー。
-  情報不足なら Issue コメントで質問し、十分な情報が揃っていれば Requirement Document の Draft PR を作成する。
-  対応する aigile ワークフロー ステップ: 2 (Issue 分析・質問) と 4 (Requirement Document PR) を統合実行。
+  Requirement Issue (label: aigile:issue:requirement) に `@aigile` メンション付きコメントが投稿された際に発火する自律ワークフロー。
+  Issue の記載事項やコメントを確認し、情報不足なら Issue コメントで質問をする。
+  もし十分な情報が揃っていれば、既存の Requirement Document を確認し、要求の重複やコンフリクトがあれば Issue コメントで報告する。
 
 on:
-  issues:
-    types: [opened, reopened, edited, labeled]
-    names: [aigile:issue:requirement]
-    lock-for-agent: true
   issue_comment:
     types: [created]
     lock-for-agent: true
   skip-bots: [github-actions]
   reaction: eyes
   steps:
-    - name: Gate by label and issue-vs-PR
+    - name: Gate by label, issue-vs-PR, and @aigile mention
       id: gate
       env:
         EVENT: ${{ github.event_name }}
         IS_PR: ${{ github.event.issue.pull_request != null }}
         LABELS: ${{ toJSON(github.event.issue.labels.*.name) }}
+        COMMENT_BODY: ${{ github.event.comment.body }}
       run: |
-        # issues イベントは on.issues.names で既にフィルタ済み → 通過
-        if [ "$EVENT" = "issues" ]; then exit 0; fi
         # issue_comment は PR コメントを除外
         if [ "$IS_PR" = "true" ]; then
           echo "Skip: PR comment, not Issue comment"
           exit 1
         fi
-        # issue_comment は対象 Issue が aigile:issue:requirement ラベルを持つこと
+        # 対象 Issue が aigile:issue:requirement ラベルを持つこと
         if ! echo "$LABELS" | grep -q '"aigile:issue:requirement"'; then
           echo "Skip: Issue lacks aigile:issue:requirement label"
+          exit 1
+        fi
+        # コメント本文に @aigile メンションが含まれること
+        if ! echo "$COMMENT_BODY" | grep -Eq '(^|[^A-Za-z0-9_-])@aigile([^A-Za-z0-9_-]|$)'; then
+          echo "Skip: Comment does not mention @aigile"
           exit 1
         fi
 
@@ -48,7 +48,7 @@ network: defaults
 
 strict: true
 
-timeout-minutes: 15
+timeout-minutes: 30
 
 tools:
   github:
@@ -142,6 +142,7 @@ safe-outputs:
 
 ```markdown
 <!-- aigile-requirement-analyzer -->
+
 ## 🤖 aigile Requirement Analyzer
 
 @<issuer_login> さん、Requirement Issue を分析しました。Requirement Document を起こす前に以下を確認させてください。
@@ -196,10 +197,10 @@ safe-outputs:
 ```markdown
 # Requirement: <タイトル（[REQ] プレフィックスは除く）>
 
-| 項目 | 値 |
-|---|---|
-| Issue | #<issue 番号> |
-| Status | Draft |
+| 項目         | 値                                           |
+| ------------ | -------------------------------------------- |
+| Issue        | #<issue 番号>                                |
+| Status       | Draft                                        |
 | Last Updated | <YYYY-MM-DD（bash `date +%Y-%m-%d` で取得）> |
 
 ## 概要
@@ -284,6 +285,7 @@ Closes #<issue 番号>
 
 ```markdown
 <!-- aigile-requirement-analyzer -->
+
 ## 🤖 aigile Requirement Analyzer
 
 情報が十分揃ったと判定したため、Requirement Document の Draft PR を作成しました。
