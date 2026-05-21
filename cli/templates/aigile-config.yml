@@ -1,0 +1,8 @@
+# プロジェクトごとの aigile 設定
+#
+# 詳細仕様: https://github.com/yumor-org/aigile/blob/main/docs/project-config.md
+repository:
+  # 開発におけるベースブランチ（例: main / develop / master / trunk）。
+  # aigile はこのブランチにマージされた Document を合意済みの Source of Truth と扱い、
+  # AI が生成する Document PR / 実装 PR もこのブランチをターゲットにします。
+  base_branch: __BASE_BRANCH__

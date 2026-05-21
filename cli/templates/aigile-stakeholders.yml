@@ -1,0 +1,28 @@
+# Document レイヤーごとの承認ポリシー
+#
+# 詳細仕様: https://github.com/yumor-org/aigile/blob/main/docs/stakeholders.md
+#
+# `gh aigile init` が配置するのは "シナリオ A: 全レイヤー人間レビュー" の最小構成。
+# AI 承認を取り入れる場合は agents.yml にエージェントを登録し、本ファイルの
+# 該当レイヤーで `approver_type: human_or_ai` および `approvers.ai_agents` を設定する。
+#
+# approvers セマンティクス:
+#   approvers に列挙された主体は、このレイヤーの承認に関わる主体（承認権限の集合）。
+#   マージ可否は当面運用ルールで担保し、必要数の機械的強制はまだ行わない。
+
+layers:
+  requirement:
+    # ⚠ 不変条件: Requirement レイヤーの承認者は人間限定（aigile 側で強制）。
+    approver_type: human
+    approvers:
+      - "@__OWNER__"
+
+  specification:
+    approver_type: human
+    approvers:
+      - "@__OWNER__"
+
+  architecture:
+    approver_type: human
+    approvers:
+      - "@__OWNER__"

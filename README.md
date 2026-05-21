@@ -38,6 +38,19 @@ AI が **計画・振り返り・改善** のプロセスを支援します。
 - AI を活用しつつ品質と説明責任を担保したい **テックリード / スクラムマスター**
 - アジャイルの規律を維持したい **個人開発者**
 
+## クイックスタート
+
+aigile を導入したいリポジトリのワーキングツリーで、以下のワンライナーを実行するだけで初期セットアップが完了します。
+
+```sh
+cd path/to/your-repo
+curl -fsSL https://raw.githubusercontent.com/yumor-org/aigile/main/cli/install.sh | bash
+```
+
+`.aigile/` 配下の設定、Issue テンプレート、Requirement Analyzer の Agentic Workflow、関連ラベルが配置されます。詳細・オプション・非対話実行は [cli/README.md](cli/README.md) を参照してください。
+
+> 必要要件: `git` / [`gh`](https://cli.github.com/) （`gh auth login` 済み） / 対象リポジトリが GitHub に push 済みであること
+
 ## 設計ドキュメント
 
 aigile の開発フロー、設計判断、設定モデルの詳細は [docs/](docs/) を参照してください。

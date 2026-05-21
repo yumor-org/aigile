@@ -1,6 +1,6 @@
 # 承認モデル / ステークホルダー宣言
 
-aigile では、各 Document レイヤーの承認者をリポジトリごとに宣言します。承認者は人間または AI エージェントが選択でき、複数承認・複数観点レビューも表現できます。
+aigile では、各 Document レイヤーの承認に関わる主体（人間 / AI エージェント）をリポジトリごとに宣言します。多視点レビューや AI 承認も同じ構造で表現できます。
 
 ## 設定ファイルの分離
 
@@ -9,7 +9,7 @@ aigile では、各 Document レイヤーの承認者をリポジトリごとに
 | ファイル | 役割 | 内容 |
 |---|---|---|
 | `.aigile/agents.yml` | エージェントカタログ | 利用可能な AI エージェントの実装参照（workflow ファイル、モデル等） |
-| `.aigile/stakeholders.yml` | 承認ポリシー | レイヤーごとの承認者・承認数・eligible リスト |
+| `.aigile/stakeholders.yml` | 承認ポリシー | レイヤーごとの承認者一覧 |
 
 なお、リポジトリ全体に関わる設定（ベースブランチ名等）は別途 `.aigile/config.yml` で管理します。[project-config.md](project-config.md) を参照してください。
 
@@ -28,8 +28,8 @@ flowchart LR
 
     subgraph pol[".aigile/stakeholders.yml<br/>ポリシー"]
         L1[<b>Requirement</b><br/>human only<br/>invariant]
-        L2[<b>Specification</b><br/>human_or_ai<br/>required: 2]
-        L3[<b>Architecture</b><br/>human_or_ai<br/>required: 2]
+        L2[<b>Specification</b><br/>human + ai]
+        L3[<b>Architecture</b><br/>human + ai]
     end
 
     L2 -.参照.-> A1
@@ -63,41 +63,47 @@ agents:
 
 ## `.aigile/stakeholders.yml` の構造
 
-レイヤーごとの承認ポリシーを宣言します。
+レイヤーごとの承認に関わる主体を宣言します。
 
 ```yaml
 layers:
   requirement:
     approver_type: human          # invariant — override 不可
-    required_approvals: 1
-    eligible: ["@product"]
+    approvers:
+      - "@product"
 
   specification:
     approver_type: human_or_ai
-    required_approvals: 2
-    eligible:
+    approvers:
       humans: ["@tech-leads"]
-      ai_agents: ["spec-security-reviewer"]  # agents.yml の名前で参照
+      ai_agents: ["spec-security-reviewer"]   # agents.yml の名前で参照
 
   architecture:
     approver_type: human_or_ai
-    required_approvals: 2
-    eligible:
+    approvers:
       humans: ["@architects"]
       ai_agents: ["arch-perf-reviewer"]
-
-  details:
-    enabled: false   # オプションレイヤー、デフォルト無効
 ```
 
 ### フィールド定義
 
 | フィールド | 型 | 説明 |
 |---|---|---|
-| `approver_type` | `human` / `ai` / `human_or_ai` | Requirement は **`human` 固定**（不変条件） |
-| `required_approvals` | 整数 | 承認に必要な票数。複数承認/コンセンサスを表現 |
-| `eligible` | リスト or オブジェクト | 承認可能な主体。`approver_type` が `human_or_ai` の場合は `humans` / `ai_agents` に分けて指定 |
-| `enabled` | bool | レイヤー自体の有効/無効（Details で使用） |
+| `approver_type` | `human` / `ai` / `human_or_ai` | `approvers` に列挙できる主体の型。Requirement は **`human` 固定**（不変条件） |
+| `approvers` | リスト or オブジェクト | このレイヤーで承認に関わる主体。`approver_type` が `human_or_ai` の場合は `humans` / `ai_agents` に分けて指定 |
+
+`approvers` は **「このレイヤーの承認権限を持つ主体の集合」** を意味します。マージに必要な承認の数や組み合わせは aigile 側では強制しません（後述のマージゲート参照）。多視点レビューが必要なら、その観点を担う人物 / エージェントを `approvers` に追加します。
+
+## マージゲートの扱い
+
+`approvers` の宣言と「PR マージを許可する基準」は **別の関心事** です。aigile では段階的に enforce を強めていく方針です。
+
+| フェーズ | 機構 | 現状 |
+|---|---|---|
+| **G4: 運用ルール** | `approvers` は文書化された宣言。マージ判定は人間 / レビュアーの判断に委ねる | **現在ここ** |
+| **G1: 専用 Status Check (将来)** | aigile が配布する `aigile-merge-gate` ワークフローが PR ラベルからレイヤーを判定し、`approvers` の review 状態を集計して required check を返す | 未実装 |
+
+G4 で運用する間は、ブランチプロテクションで「PR レビュー 1 件以上」など GitHub 標準の最低限ガードを併用することを推奨します。aigile としての厳密な承認集計は G1 で導入します。
 
 ## 不変条件: Requirement = 人間承認
 
@@ -132,9 +138,9 @@ aigile:
 
 ```yaml
 layers:
-  requirement: { approver_type: human, required_approvals: 1, eligible: ["@me"] }
-  specification: { approver_type: human, required_approvals: 1, eligible: ["@me"] }
-  architecture: { approver_type: human, required_approvals: 1, eligible: ["@me"] }
+  requirement:   { approver_type: human, approvers: ["@me"] }
+  specification: { approver_type: human, approvers: ["@me"] }
+  architecture:  { approver_type: human, approvers: ["@me"] }
 ```
 
 ### シナリオ B: AI 主導（Requirement のみ人間）
@@ -143,16 +149,15 @@ layers:
 layers:
   requirement:
     approver_type: human
-    required_approvals: 1
-    eligible: ["@product"]
+    approvers: ["@product"]
   specification:
     approver_type: ai
-    required_approvals: 1
-    eligible: { ai_agents: ["spec-reviewer"] }
+    approvers:
+      ai_agents: ["spec-reviewer"]
   architecture:
     approver_type: ai
-    required_approvals: 1
-    eligible: { ai_agents: ["arch-reviewer"] }
+    approvers:
+      ai_agents: ["arch-reviewer"]
 ```
 
 ### シナリオ C: 多視点 AI レビュー + 人間最終承認
@@ -161,8 +166,7 @@ layers:
 layers:
   specification:
     approver_type: human_or_ai
-    required_approvals: 3   # human 1 + ai 2
-    eligible:
+    approvers:
       humans: ["@tech-leads"]
       ai_agents: ["spec-security-reviewer", "spec-perf-reviewer"]
 ```
