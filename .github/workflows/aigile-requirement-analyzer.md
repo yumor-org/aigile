@@ -185,7 +185,7 @@ safe-outputs:
 
 捏造禁止: Document に書かれていない内容を推測で「コンフリクトあり」と判定しない。曖昧な場合のみ起票者に確認する。
 
-後段の Document 作成ワークフローが利用する Requirement Document のテンプレートは [docs/templates/requirement-document.md](../../docs/templates/requirement-document.md) に集約してある。本ワークフローでは Document の作成・編集は行わない（既存 Document の参照のみ）。
+後段の Document 作成ワークフローが利用する Requirement Document のテンプレートは [.aigile/docs/templates/requirement.md](../../.aigile/docs/templates/requirement.md) に集約してある。本ワークフローでは Document の作成・編集は行わない（既存 Document の参照のみ）。
 
 ### 3B-2. Ready ラベルの付与
 
