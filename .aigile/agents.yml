@@ -1,0 +1,15 @@
+# 利用可能な AI エージェントのカタログ
+#
+# 詳細仕様: https://github.com/yumor-org/aigile/blob/main/docs/stakeholders.md
+#
+# stakeholders.yml の `approvers.ai_agents` から参照される ID をここで宣言する。
+# 各エージェントは GitHub Agentic Workflow (gh aw) として実装されることを想定。
+#
+# 例:
+# agents:
+#   spec-security-reviewer:
+#     workflow: .github/workflows/aigile-spec-security.yml
+#     description: "Spec のセキュリティ/プライバシ観点レビュー"
+#     model_hint: claude-opus-4-7
+
+agents: {}
