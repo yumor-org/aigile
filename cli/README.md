@@ -54,6 +54,7 @@ curl -fsSL https://raw.githubusercontent.com/yumor-org/aigile/main/cli/install.s
 
 | パス | 内容 |
 |---|---|
+| `.aigile/README.md` | 導入先リポジトリ向けのオンボーディングガイド |
 | `.aigile/config.yml` | プロジェクト設定（`base_branch` 等） |
 | `.aigile/stakeholders.yml` | レイヤーごとの承認者宣言（既定: 全レイヤー人間レビュー） |
 | `.aigile/agents.yml` | AI エージェントカタログ（初期は空） |
