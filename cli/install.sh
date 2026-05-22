@@ -169,6 +169,7 @@ main() {
 
   printf '\n' >&2
   log_info "Plan:"
+  log_step ".aigile/README.md                        (onboarding guide)"
   log_step ".aigile/config.yml                       (base_branch=$base_branch)"
   log_step ".aigile/stakeholders.yml                 (default approver: @$user_login)"
   log_step ".aigile/agents.yml                       (empty catalog)"
@@ -195,6 +196,7 @@ main() {
     || die "failed to fetch https://github.com/${REPO}.git@${REF}"
 
   log_info "Installing files..."
+  install_file "$src/cli/templates/aigile-readme.md"        ".aigile/README.md"
   install_file "$src/cli/templates/aigile-config.yml"       ".aigile/config.yml"        "BASE_BRANCH=$base_branch"
   install_file "$src/cli/templates/aigile-stakeholders.yml" ".aigile/stakeholders.yml"  "OWNER=$user_login"
   install_file "$src/cli/templates/aigile-agents.yml"       ".aigile/agents.yml"
