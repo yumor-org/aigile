@@ -1,0 +1,97 @@
+name: aigile Assign Document Reviewers
+
+# Document PR にレビュアーを割り当てる通常 Actions ワークフロー。
+# レビュアーの Source of Truth は base ブランチ（main）の .aigile/stakeholders.yml。
+#
+# 役割分担:
+#   - aigile-requirement-doc-writer (gh aw): Document PR を作成する（reviewers は付与しない）
+#   - 本ワークフロー:                          PR の label を見てレビュアーを割り当てる
+#
+# 対応レイヤー:
+#   ラベル `aigile:doc:requirement` → layers.requirement.approvers
+#
+# pull_request_target を使う理由: base ブランチの定義と stakeholders.yml で実行することで、
+# フォーク PR が承認者リストを書き換える攻撃面を排除する（PR 提供コードは実行しない）。
+
+on:
+  pull_request_target:
+    types: [opened, reopened, labeled]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  assign:
+    # opened/reopened ではラベル付き PR、labeled では当該レイヤーラベルが付与されたときのみ実行。
+    if: |
+      (
+        (github.event.action == 'opened' || github.event.action == 'reopened')
+        && contains(github.event.pull_request.labels.*.name, 'aigile:doc:requirement')
+      )
+      || (
+        github.event.action == 'labeled'
+        && github.event.label.name == 'aigile:doc:requirement'
+      )
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout base branch (Source of Truth)
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.base.ref }}
+          persist-credentials: false
+
+      - name: Extract approvers from stakeholders.yml
+        id: approvers
+        env:
+          AUTHOR: ${{ github.event.pull_request.user.login }}
+          # ラベル → stakeholders.yml の layers キーのマッピングは現状 requirement のみ。
+          # Spec / Architecture を追加する際は LAYER_KEY 分岐をここで拡張する。
+          LAYER_KEY: requirement
+        run: |
+          set -euo pipefail
+          if [ ! -f .aigile/stakeholders.yml ]; then
+            echo "::notice::No .aigile/stakeholders.yml on base branch; skipping reviewer assignment."
+            echo "reviewers=" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          # PyYAML は ubuntu-latest にプリインストール済み。
+          python3 - <<'PY' >> "$GITHUB_OUTPUT"
+          import os
+          import yaml
+
+          author = os.environ.get("AUTHOR", "").lower()
+          layer_key = os.environ.get("LAYER_KEY", "")
+
+          with open(".aigile/stakeholders.yml") as f:
+              data = yaml.safe_load(f) or {}
+
+          layer = ((data.get("layers") or {}).get(layer_key)) or {}
+          approvers = layer.get("approvers") or []
+
+          reviewers = []
+          for raw in approvers:
+              if not isinstance(raw, str):
+                  continue
+              s = raw.strip().lstrip("@")
+              if not s:
+                  continue
+              # gh pr edit --add-reviewer は "user" / "org/team-slug" を受け付ける。
+              # PR 作者本人は GitHub 側で self-review が拒否されるため除外する。
+              if "/" not in s and s.lower() == author:
+                  continue
+              reviewers.append(s)
+
+          print(f"reviewers={','.join(reviewers)}")
+          PY
+
+      - name: Request reviewers
+        if: steps.approvers.outputs.reviewers != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          REVIEWERS: ${{ steps.approvers.outputs.reviewers }}
+        run: |
+          set -euo pipefail
+          echo "Requesting reviewers: $REVIEWERS"
+          gh pr edit "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --add-reviewer "$REVIEWERS"
