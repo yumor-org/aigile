@@ -58,10 +58,15 @@ curl -fsSL https://raw.githubusercontent.com/yumor-org/aigile/main/cli/install.s
 | `.aigile/config.yml` | プロジェクト設定（`base_branch` 等） |
 | `.aigile/stakeholders.yml` | レイヤーごとの承認者宣言（既定: 全レイヤー人間レビュー） |
 | `.aigile/agents.yml` | AI エージェントカタログ（初期は空） |
-| `.aigile/docs/requirements/` | Requirement Document 格納先（`.gitkeep` 付き） |
-| `.aigile/docs/templates/requirement.md` | Requirement Document テンプレート |
+| `.aigile/docs/L1_requirements/TEMPLATE.md` | Requirement Document 格納先とテンプレート |
+| `.aigile/docs/L2_specifications/TEMPLATE.md` | Specification Document 格納先とテンプレート |
+| `.aigile/docs/L3_architectures/TEMPLATE.md` | Architecture Document 格納先とテンプレート |
 | `.github/ISSUE_TEMPLATE/aigile-requirement.yml` | Requirement Issue テンプレート |
-| `.github/workflows/aigile-requirement-analyzer.md` | Requirement Analyzer Agentic Workflow |
+| `.github/workflows/aigile-requirement-analyzer.md` | Requirement Issue を分析して Ready ラベルを付与する Agentic Workflow |
+| `.github/workflows/aigile-requirement-doc-writer.md` | Ready ラベル付与で起動し、Requirement Document PR を発行する Agentic Workflow |
+| `.github/workflows/aigile-specification-doc-writer.md` | Req Doc PR マージで起動し、Specification Document の検証・更新 PR を発行する Agentic Workflow |
+| `.github/workflows/aigile-architecture-doc-writer.md` | Spec Doc PR マージで起動し、Architecture Document の検証・更新 PR を発行する Agentic Workflow |
+| `.github/workflows/aigile-assign-doc-reviewers.yml` | Document PR のラベルから `stakeholders.yml` を参照してレビュアーをアサインする通常 Actions ワークフロー |
 
 ### 作成されるラベル
 
@@ -69,6 +74,10 @@ curl -fsSL https://raw.githubusercontent.com/yumor-org/aigile/main/cli/install.s
 |---|---|
 | `aigile:issue:requirement` | Requirement Issue（追加の要求）の識別 |
 | `aigile:issue:requirement:ready` | Requirement Document 作成準備が整った Issue |
+| `aigile:doc:requirement` | Requirement Document PR の識別（レビュアー割り当てに使用） |
+| `aigile:doc:specification` | Specification Document PR の識別 |
+| `aigile:doc:architecture` | Architecture Document PR の識別 |
+| `automation` | aigile ワークフローが自動発行する PR / Issue の汎用マーカー |
 
 ## init 後にやること
 
@@ -98,7 +107,7 @@ curl -fsSL https://raw.githubusercontent.com/yumor-org/aigile/main/cli/install.s
 スクリプトが配置する成果物の意味と aigile 全体の設計は以下を参照してください。
 
 - [docs/concepts.md](../docs/concepts.md) — Source of Truth / Issue と Document の分離
-- [docs/workflow.md](../docs/workflow.md) — 10 ステップフロー
+- [docs/workflow.md](../docs/workflow.md) — イベント駆動開発フロー（Req → Spec → Arch のカスケード）
 - [docs/project-config.md](../docs/project-config.md) — `.aigile/config.yml` 仕様
 - [docs/stakeholders.md](../docs/stakeholders.md) — `.aigile/stakeholders.yml` / `agents.yml` 仕様
 
