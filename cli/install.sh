@@ -169,15 +169,22 @@ main() {
 
   printf '\n' >&2
   log_info "Plan:"
-  log_step ".aigile/README.md                        (onboarding guide)"
-  log_step ".aigile/config.yml                       (base_branch=$base_branch)"
-  log_step ".aigile/stakeholders.yml                 (default approver: @$user_login)"
-  log_step ".aigile/agents.yml                       (empty catalog)"
-  log_step ".aigile/docs/requirements/               (with .gitkeep)"
-  log_step ".aigile/docs/templates/requirement.md"
+  log_step ".aigile/README.md                                    (onboarding guide)"
+  log_step ".aigile/config.yml                                   (base_branch=$base_branch)"
+  log_step ".aigile/stakeholders.yml                             (default approver: @$user_login)"
+  log_step ".aigile/agents.yml                                   (empty catalog)"
+  log_step ".aigile/docs/L1_requirements/TEMPLATE.md             (Requirement Document テンプレート)"
+  log_step ".aigile/docs/L2_specifications/TEMPLATE.md           (Specification Document テンプレート)"
+  log_step ".aigile/docs/L3_architectures/TEMPLATE.md            (Architecture Document テンプレート)"
   log_step ".github/ISSUE_TEMPLATE/aigile-requirement.yml"
-  log_step ".github/workflows/aigile-requirement-analyzer.md"
-  log_step "labels: aigile:issue:requirement, aigile:issue:requirement:ready"
+  log_step ".github/workflows/aigile-requirement-analyzer.md     (gh aw)"
+  log_step ".github/workflows/aigile-requirement-doc-writer.md   (gh aw)"
+  log_step ".github/workflows/aigile-specification-doc-writer.md (gh aw)"
+  log_step ".github/workflows/aigile-architecture-doc-writer.md  (gh aw)"
+  log_step ".github/workflows/aigile-assign-doc-reviewers.yml    (Actions)"
+  log_step "labels: aigile:issue:requirement, aigile:issue:requirement:ready,"
+  log_step "        aigile:doc:requirement, aigile:doc:specification,"
+  log_step "        aigile:doc:architecture, automation"
   printf '\n' >&2
 
   if [ "$assume_yes" -ne 1 ] && ! confirm 'Proceed?' 'y'; then
@@ -196,24 +203,31 @@ main() {
     || die "failed to fetch https://github.com/${REPO}.git@${REF}"
 
   log_info "Installing files..."
-  install_file "$src/cli/templates/aigile-readme.md"        ".aigile/README.md"
-  install_file "$src/cli/templates/aigile-config.yml"       ".aigile/config.yml"        "BASE_BRANCH=$base_branch"
-  install_file "$src/cli/templates/aigile-stakeholders.yml" ".aigile/stakeholders.yml"  "OWNER=$user_login"
-  install_file "$src/cli/templates/aigile-agents.yml"       ".aigile/agents.yml"
+  install_file "$src/cli/templates/readme.md"        ".aigile/README.md"
+  install_file "$src/cli/templates/config.yml"       ".aigile/config.yml"        "BASE_BRANCH=$base_branch"
+  install_file "$src/cli/templates/stakeholders.yml" ".aigile/stakeholders.yml"  "OWNER=$user_login"
+  install_file "$src/cli/templates/agents.yml"       ".aigile/agents.yml"
 
-  ensure_dir ".aigile/docs/requirements"
-  if [ ! -e ".aigile/docs/requirements/.gitkeep" ]; then
-    : > ".aigile/docs/requirements/.gitkeep"
-    log_step "write  .aigile/docs/requirements/.gitkeep"
-  fi
+  # 各レイヤーディレクトリは TEMPLATE.md が tracked ファイルとして保持するため、
+  # 別途 .gitkeep を作成する必要はない。
+  install_file "$src/cli/templates/docs/L1_requirements/TEMPLATE.md"   ".aigile/docs/L1_requirements/TEMPLATE.md"
+  install_file "$src/cli/templates/docs/L2_specifications/TEMPLATE.md" ".aigile/docs/L2_specifications/TEMPLATE.md"
+  install_file "$src/cli/templates/docs/L3_architectures/TEMPLATE.md"  ".aigile/docs/L3_architectures/TEMPLATE.md"
 
-  install_file "$src/docs/templates/requirement-document.md"           ".aigile/docs/templates/requirement.md"
-  install_file "$src/.github/ISSUE_TEMPLATE/aigile-requirement.yml"    ".github/ISSUE_TEMPLATE/aigile-requirement.yml"
-  install_file "$src/.github/workflows/aigile-requirement-analyzer.md" ".github/workflows/aigile-requirement-analyzer.md"
+  install_file "$src/.github/ISSUE_TEMPLATE/aigile-requirement.yml"        ".github/ISSUE_TEMPLATE/aigile-requirement.yml"
+  install_file "$src/.github/workflows/aigile-requirement-analyzer.md"     ".github/workflows/aigile-requirement-analyzer.md"
+  install_file "$src/.github/workflows/aigile-requirement-doc-writer.md"   ".github/workflows/aigile-requirement-doc-writer.md"
+  install_file "$src/.github/workflows/aigile-specification-doc-writer.md" ".github/workflows/aigile-specification-doc-writer.md"
+  install_file "$src/.github/workflows/aigile-architecture-doc-writer.md"  ".github/workflows/aigile-architecture-doc-writer.md"
+  install_file "$src/.github/workflows/aigile-assign-doc-reviewers.yml"    ".github/workflows/aigile-assign-doc-reviewers.yml"
 
   log_info "Creating GitHub labels..."
   ensure_label "aigile:issue:requirement"       "0E8A16" "aigile Requirement Issue (追加の要求)"
   ensure_label "aigile:issue:requirement:ready" "1D76DB" "Requirement Document 作成準備が整った Issue"
+  ensure_label "aigile:doc:requirement"         "5319E7" "aigile Requirement Document PR"
+  ensure_label "aigile:doc:specification"       "5319E7" "aigile Specification Document PR"
+  ensure_label "aigile:doc:architecture"        "5319E7" "aigile Architecture Document PR"
+  ensure_label "automation"                     "BFD4F2" "Automated PR / Issue"
 
   printf '\n' >&2
   log_info "Done."
@@ -229,11 +243,18 @@ Next steps:
   2. Open a Requirement Issue from the new template
      (Issues -> New issue -> "Requirement Issue (追加の要求)").
 
-  3. The Requirement Analyzer is a GitHub Agentic Workflow. Install and
-     compile it once with the gh-aw extension:
+  3. The Document Writer workflows are GitHub Agentic Workflows. Install and
+     compile them once with the gh-aw extension:
        gh extension install githubnext/gh-aw
        gh aw compile
        gh aw push
+     This compiles 4 .md workflows to .lock.yml:
+       - aigile-requirement-analyzer
+       - aigile-requirement-doc-writer
+       - aigile-specification-doc-writer
+       - aigile-architecture-doc-writer
+     The aigile-assign-doc-reviewers.yml is a regular Actions workflow and
+     needs no compilation.
      See https://github.com/githubnext/gh-aw for the Anthropic API key
      secret setup and other gh-aw specifics.
 EOF

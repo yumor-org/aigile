@@ -4,11 +4,15 @@ name: aigile Assign Document Reviewers
 # レビュアーの Source of Truth は base ブランチ（main）の .aigile/stakeholders.yml。
 #
 # 役割分担:
-#   - aigile-requirement-doc-writer (gh aw): Document PR を作成する（reviewers は付与しない）
-#   - 本ワークフロー:                          PR の label を見てレビュアーを割り当てる
+#   - aigile-requirement-doc-writer     (gh aw): Requirement Document PR を作成する（reviewers は付与しない）
+#   - aigile-specification-doc-writer   (gh aw): Specification Document PR を作成する（reviewers は付与しない）
+#   - aigile-architecture-doc-writer    (gh aw): Architecture Document PR を作成する（reviewers は付与しない）
+#   - 本ワークフロー:                              PR の label を見てレビュアーを割り当てる
 #
 # 対応レイヤー:
-#   ラベル `aigile:doc:requirement` → layers.requirement.approvers
+#   ラベル `aigile:doc:requirement`   → layers.requirement.approvers
+#   ラベル `aigile:doc:specification` → layers.specification.approvers
+#   ラベル `aigile:doc:architecture`  → layers.architecture.approvers
 #
 # pull_request_target を使う理由: base ブランチの定義と stakeholders.yml で実行することで、
 # フォーク PR が承認者リストを書き換える攻撃面を排除する（PR 提供コードは実行しない）。
@@ -27,11 +31,19 @@ jobs:
     if: |
       (
         (github.event.action == 'opened' || github.event.action == 'reopened')
-        && contains(github.event.pull_request.labels.*.name, 'aigile:doc:requirement')
+        && (
+          contains(github.event.pull_request.labels.*.name, 'aigile:doc:requirement')
+          || contains(github.event.pull_request.labels.*.name, 'aigile:doc:specification')
+          || contains(github.event.pull_request.labels.*.name, 'aigile:doc:architecture')
+        )
       )
       || (
         github.event.action == 'labeled'
-        && github.event.label.name == 'aigile:doc:requirement'
+        && (
+          github.event.label.name == 'aigile:doc:requirement'
+          || github.event.label.name == 'aigile:doc:specification'
+          || github.event.label.name == 'aigile:doc:architecture'
+        )
       )
     runs-on: ubuntu-latest
     steps:
@@ -41,13 +53,33 @@ jobs:
           ref: ${{ github.event.pull_request.base.ref }}
           persist-credentials: false
 
+      - name: Determine layer key from PR labels
+        id: layer
+        env:
+          LABELS: ${{ toJSON(github.event.pull_request.labels.*.name) }}
+        run: |
+          set -euo pipefail
+          # ラベル → stakeholders.yml の layers キーへのマッピング。
+          # 複数の aigile:doc:* ラベルが同時に付与されることは想定外（PR は単一レイヤー）。
+          # 万一複数あった場合は最上位レイヤー (requirement) を優先する。
+          if echo "$LABELS" | grep -q '"aigile:doc:requirement"'; then
+            key=requirement
+          elif echo "$LABELS" | grep -q '"aigile:doc:specification"'; then
+            key=specification
+          elif echo "$LABELS" | grep -q '"aigile:doc:architecture"'; then
+            key=architecture
+          else
+            echo "::notice::No aigile:doc:* label found on PR; skipping reviewer assignment."
+            key=
+          fi
+          echo "key=$key" >> "$GITHUB_OUTPUT"
+
       - name: Extract approvers from stakeholders.yml
         id: approvers
+        if: steps.layer.outputs.key != ''
         env:
           AUTHOR: ${{ github.event.pull_request.user.login }}
-          # ラベル → stakeholders.yml の layers キーのマッピングは現状 requirement のみ。
-          # Spec / Architecture を追加する際は LAYER_KEY 分岐をここで拡張する。
-          LAYER_KEY: requirement
+          LAYER_KEY: ${{ steps.layer.outputs.key }}
         run: |
           set -euo pipefail
           if [ ! -f .aigile/stakeholders.yml ]; then
@@ -67,10 +99,21 @@ jobs:
               data = yaml.safe_load(f) or {}
 
           layer = ((data.get("layers") or {}).get(layer_key)) or {}
-          approvers = layer.get("approvers") or []
+          approvers_field = layer.get("approvers") or []
+
+          # approvers は 2 形式を受ける（docs/stakeholders.md 参照）:
+          #   - list:  ["@user1", "@org/team"]           ... approver_type: human
+          #   - dict:  {humans: [...], ai_agents: [...]} ... approver_type: human_or_ai
+          # PR レビュアー割り当ては人間のみが対象（AI エージェントは別経路で承認に関わる）。
+          if isinstance(approvers_field, dict):
+              raw_list = approvers_field.get("humans") or []
+          elif isinstance(approvers_field, list):
+              raw_list = approvers_field
+          else:
+              raw_list = []
 
           reviewers = []
-          for raw in approvers:
+          for raw in raw_list:
               if not isinstance(raw, str):
                   continue
               s = raw.strip().lstrip("@")

@@ -24,21 +24,21 @@ flowchart TD
 
 ## 発生タイミングと対処の対応表
 
-10 ステップフロー上で発生し得るエスカレーション事象と、その対処方針です。
+イベント駆動フロー（[workflow.md](workflow.md)）上で発生し得るエスカレーション事象と、その対処方針です。ステップ番号は workflow.md のトリガー・アクター表と一致します。
 
 | # | タイミング | 検出 | 事象 | 対処 |
 |---|---|---|---|---|
 | α1 | Requirement Issue 分析中（ステップ 2） | AI | 新規 Issue が既存 Requirement Document と矛盾 | Requirement Issue へのコメントで指摘 |
-| α2 | Requirement Doc PR 作成中（ステップ 4） | AI | Doc 内部の整合性が崩れる | その Doc PR の中で議論修正 |
-| α3 | Requirement Doc PR レビュー中（ステップ 5） | 人 | 既存記述の問題に気づく | その Doc PR の中で議論修正 |
-| β1 | Spec 作成中（ステップ 7） | AI | マージ済み Requirement Doc が内部矛盾 | **エスカレーション Issue**（Requirement 責任者にアサイン） |
-| β2 | Spec 作成中（ステップ 7） | AI | マージ済み Requirement Doc が他の Requirement と矛盾 | **エスカレーション Issue**（Requirement 責任者にアサイン） |
-| β3 | Spec 作成中（ステップ 7） | AI | Requirement Doc が曖昧で複数の妥当な Spec が成立 | Spec PR にその旨記載し、PR レビューで議論 |
-| β4 | Architecture 作成中（ステップ 7） | AI | 既存 Requirement / Spec が技術的に実現不可能 | **エスカレーション Issue**（実現可能な代替案を示すと議論が早い） |
-| β5 | Architecture 作成中（ステップ 7） | AI | 既存 Architecture と新 Spec の整合が必要 | 後続 Architecture PR 内で議論（通常のカスケード作業） |
-| γ1 | 実装計画立案中（ステップ 9） | AI | 既存実装が Architecture に追いついていない | **対処不要**。Document → 実装の流れで一時的に生じる正常状態 |
-| γ2 | 実装中（ステップ 10） | AI | Spec の曖昧さが実装時に顕在化 | **エスカレーション Issue**（Spec 責任者） |
-| γ3 | 実装中（ステップ 10） | AI | Architecture が現コードベースの制約と非互換 | **エスカレーション Issue**（Architecture 責任者） |
+| α2 | Requirement Doc PR 作成中（ステップ 3） | AI | Doc 内部の整合性が崩れる | その Doc PR の中で議論修正 |
+| α3 | Requirement Doc PR レビュー中（ステップ 4） | 人 | 既存記述の問題に気づく | その Doc PR の中で議論修正 |
+| β1 | Spec 検証・更新中（ステップ 5） | AI | マージ済み Requirement Doc が内部矛盾 | **エスカレーション Issue**（Requirement 責任者にアサイン） |
+| β2 | Spec 検証・更新中（ステップ 5） | AI | マージ済み Requirement Doc が他の Requirement と矛盾 | **エスカレーション Issue**（Requirement 責任者にアサイン） |
+| β3 | Spec 検証・更新中（ステップ 5） | AI | Requirement Doc が曖昧で複数の妥当な Spec が成立 | Spec PR にその旨記載し、PR レビューで議論 |
+| β4 | Arch 検証・更新中（ステップ 7） | AI | 既存 Requirement / Spec が技術的に実現不可能 | **エスカレーション Issue**（実現可能な代替案を示すと議論が早い） |
+| β5 | Arch 検証・更新中（ステップ 7） | AI | 既存 Architecture と新 Spec の整合が必要 | 後続 Architecture PR 内で議論（通常のカスケード作業） |
+| γ1 | 実装計画立案中（ステップ 9、将来予定） | AI | 既存実装が Architecture に追いついていない | **対処不要**。Document → 実装の流れで一時的に生じる正常状態 |
+| γ2 | 実装中（ステップ 10、将来予定） | AI | Spec の曖昧さが実装時に顕在化 | **エスカレーション Issue**（Spec 責任者） |
+| γ3 | 実装中（ステップ 10、将来予定） | AI | Architecture が現コードベースの制約と非互換 | **エスカレーション Issue**（Architecture 責任者） |
 
 `γ1` は aigile の SoT モデル上、**Document が実装に先行している状態は正常** と定義します。Doc → 実装の方向の "乖離" は一時状態であり、エスカレーション対象ではありません。
 
@@ -134,7 +134,7 @@ Title: [escalation] Requirement Document "auth.md" に内部矛盾
 
 ## 概要
 種別: Inconsistency (β1)
-対象 Document: docs/requirements/auth.md (Section 3.2 ~ 3.4)
+対象 Document: .aigile/docs/L1_requirements/auth.md (Section 3.2 ~ 3.4)
 検出元 PR: #142 (Spec PR for Authentication, Closed)
 元 Requirement Issue: #98
 

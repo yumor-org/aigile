@@ -1,7 +1,9 @@
 # 02. Requirement Issue が "Document 化準備完了" になる判定
 
-**ステータス**: 未確定
+**ステータス**: 確定（(d) ハイブリッドを採用、`aigile-requirement-analyzer` ワークフローに実装済み）
 **関連**: [workflow.md](../workflow.md)
+
+> **注**: 本ドキュメントは設計初期段階の議論記録です。本文中のステップ番号は議論当時のフロー定義（ラベリングを独立ステップとして配置）に基づきます。最終採用された **イベント駆動フロー** とそのステップ番号は [workflow.md](../workflow.md) を参照してください。Analyzer が `aigile:issue:requirement:ready` ラベルを付与すると Doc Writer が発火する形で (d) ハイブリッドが実装されています。
 
 ## 背景
 

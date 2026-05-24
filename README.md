@@ -56,8 +56,9 @@ curl -fsSL https://raw.githubusercontent.com/yumor-org/aigile/main/cli/install.s
 aigile の開発フロー、設計判断、設定モデルの詳細は [docs/](docs/) を参照してください。
 
 - [concepts.md](docs/concepts.md) — コアコンセプト（SoT、Issue の 2 種別、不変条件）
-- [workflow.md](docs/workflow.md) — 10 ステップ開発フローと全体図
-- [layers.md](docs/layers.md) — 4 層 Document モデルと Spec Kit マッピング
+- [workflow.md](docs/workflow.md) — イベント駆動開発フロー（トリガー・アクター表とカスケード図）
+- [layers.md](docs/layers.md) — 3 層 Document モデルと Spec Kit マッピング
+- [document-model.md](docs/document-model.md) — frontmatter スキーマと依存関係の宣言規約
 - [stakeholders.md](docs/stakeholders.md) — 承認モデルと設定ファイル仕様
 - [project-config.md](docs/project-config.md) — プロジェクト全体設定（ベースブランチ等）
 - [escalation.md](docs/escalation.md) — エスカレーション機構
