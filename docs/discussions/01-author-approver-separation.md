@@ -29,7 +29,7 @@ aigile のフローでは、Requirement Document、Specification Document、Arch
 ### (b) Requirement 層のみ「人間承認必須」、他はポリシーに委ねる（現状の設計）
 
 - Requirement 層は既に `approver_type: human` 固定
-- Spec, Architecture, Details は `.aigile/stakeholders.yml` でプロジェクトが選択可能
+- Spec, Architecture は `.aigile/stakeholders.yml` でプロジェクトが選択可能
 - **影響**: 柔軟だが設定ミスや過信のリスクあり
 
 ### (c) 「著者 AI と承認者 AI は別エージェントでなければならない」をルール化
