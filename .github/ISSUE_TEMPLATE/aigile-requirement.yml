@@ -2,7 +2,7 @@ name: "Requirement Issue（追加の要求）"
 description: "新しく欲しい機能や変更の要求を起票します。aigile の Requirement レイヤーの起点になる Issue です。"
 title: "[REQ] xxx"
 labels:
-  - aigile:issue:requirement
+  - aigile:issue:req
 body:
   - type: textarea
     id: summary

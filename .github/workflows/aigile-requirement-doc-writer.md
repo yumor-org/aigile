@@ -1,14 +1,14 @@
 ---
 name: aigile Requirement Document Writer
 description: |
-  Requirement Issue に `aigile:issue:requirement:ready` ラベルが付与された際に発火する自律ワークフロー。
+  Requirement Issue に `aigile:issue:status:req-analyzed` ラベルが付与された際に発火する自律ワークフロー。
   対象 Issue の内容と既存 Requirement Document を読み取り、`.aigile/docs/L1_requirements/<slug>.md` を新規作成または更新する PR を発行する。
   PR のレビュアーは `.aigile/stakeholders.yml` の `layers.requirement.approvers` に従う（Requirement レイヤーは人間承認が不変条件）。
 
 on:
   issues:
     types: [labeled]
-    names: [aigile:issue:requirement:ready]
+    names: [aigile:issue:status:req-analyzed]
   reaction: rocket
   steps:
     - name: Gate by label, issue state, and parent label
@@ -18,8 +18,8 @@ on:
         ISSUE_STATE: ${{ github.event.issue.state }}
         LABELS: ${{ toJSON(github.event.issue.labels.*.name) }}
       run: |
-        # 対象ラベルが aigile:issue:requirement:ready であること（念のための二重ガード）
-        if [ "$ADDED_LABEL" != "aigile:issue:requirement:ready" ]; then
+        # 対象ラベルが aigile:issue:status:req-analyzed であること（念のための二重ガード）
+        if [ "$ADDED_LABEL" != "aigile:issue:status:req-analyzed" ]; then
           echo "Skip: Triggered by label '$ADDED_LABEL', not requirement:ready"
           exit 1
         fi
@@ -28,9 +28,9 @@ on:
           echo "Skip: Issue state is '$ISSUE_STATE' (not open)"
           exit 1
         fi
-        # 親ラベル aigile:issue:requirement が付与されていること
-        if ! echo "$LABELS" | grep -q '"aigile:issue:requirement"'; then
-          echo "Skip: Issue lacks aigile:issue:requirement label"
+        # 親ラベル aigile:issue:req が付与されていること
+        if ! echo "$LABELS" | grep -q '"aigile:issue:req"'; then
+          echo "Skip: Issue lacks aigile:issue:req label"
           exit 1
         fi
 
@@ -58,11 +58,11 @@ tools:
 
 safe-outputs:
   # 本ワークフローは PR の発行のみを担う。レビュアー割り当ては別ワークフロー
-  # `.github/workflows/aigile-assign-doc-reviewers.yml` が `aigile:doc:requirement`
+  # `.github/workflows/aigile-assign-doc-reviewers.yml` が `aigile:pr:req`
   # ラベル付き PR を検知して、base ブランチの .aigile/stakeholders.yml を Source of Truth として割り当てる。
   create-pull-request:
     title-prefix: "[Requirement] "
-    labels: [aigile:doc:requirement, automation]
+    labels: [aigile:pr:req, automation]
     draft: false
     base-branch: main
     branch-prefix: "aigile/requirement-"
@@ -80,7 +80,7 @@ safe-outputs:
 - 対象 Issue 番号: `${{ github.event.issue.number }}`
 - 対象 Issue タイトル: `${{ github.event.issue.title }}`
 - トリガーした人物: `${{ github.actor }}`
-- 付与されたトリガーラベル: `aigile:issue:requirement:ready`（本ワークフローは当該ラベル付与時のみ発火する）
+- 付与されたトリガーラベル: `aigile:issue:status:req-analyzed`（本ワークフローは当該ラベル付与時のみ発火する）
 
 ## aigile フレームワークの前提
 
@@ -109,7 +109,7 @@ safe-outputs:
    - `find .aigile/docs/L1_requirements -type f -name '*.md' -not -name 'TEMPLATE.md' 2>/dev/null` で既存 Document の有無を確認する（`TEMPLATE.md` はテンプレート定義のため除外）。
    - `date +%Y-%m-%d` で本日の日付を取得する（frontmatter の `last_updated` に使用）。
 
-レビュアー割り当ては別ワークフロー（`.github/workflows/aigile-assign-doc-reviewers.yml`）が PR の `aigile:doc:requirement` ラベルを検知して `.aigile/stakeholders.yml` を Source of Truth に行うため、本ワークフロー側で `stakeholders.yml` を読み取る必要はない。
+レビュアー割り当ては別ワークフロー（`.github/workflows/aigile-assign-doc-reviewers.yml`）が PR の `aigile:pr:req` ラベルを検知して `.aigile/stakeholders.yml` を Source of Truth に行うため、本ワークフロー側で `stakeholders.yml` を読み取る必要はない。
 
 ## 手順 2: Document パスの決定
 
@@ -166,9 +166,9 @@ safe-outputs:
 
 - **タイトル**: `<タイトル>` を渡すと `[Requirement] ` プレフィックスが安全出力側で付与される。
   - 例: タイトル引数 `SSO ログイン対応` → 実際の PR タイトル `[Requirement] SSO ログイン対応`
-- **ラベル**: `aigile:doc:requirement`, `automation`（安全出力側で自動付与される）
+- **ラベル**: `aigile:pr:req`, `automation`（安全出力側で自動付与される）
 - **ベースブランチ**: `main`（安全出力側で自動設定される）
-- **レビュアー**: 別ワークフロー `.github/workflows/aigile-assign-doc-reviewers.yml` が `aigile:doc:requirement` ラベル付き PR を検知して、base ブランチの `.aigile/stakeholders.yml` の `layers.requirement.approvers` を Source of Truth として付与する。本ワークフローでは付与しない。
+- **レビュアー**: 別ワークフロー `.github/workflows/aigile-assign-doc-reviewers.yml` が `aigile:pr:req` ラベル付き PR を検知して、base ブランチの `.aigile/stakeholders.yml` の `layers.requirement.approvers` を Source of Truth として付与する。本ワークフローでは付与しない。
 
 PR 本文は `.aigile/docs/L1_requirements/TEMPLATE.md` の「PR 化のメタデータ」の本文テンプレートに従う。`<issue 番号>` と `<slug>` を実値に置換する:
 
@@ -188,10 +188,12 @@ Requirement Issue #<issue 番号> を受けて、Requirement Document を作成 
 - 振る舞い記述として読めるか、実装に踏み込みすぎていないかを確認してください。
 - 受け入れ基準が観測可能な条件として書けているかを確認してください。
 
-## クローズ
+## 関連
 
-Closes #<issue 番号>
+- 起点: Requirement Issue #<issue 番号>（本 PR のマージで `aigile:issue:status:req-fixed` が起点 Issue に付与され、Specification Document Writer が発火する）
 ```
+
+注: 旧テンプレートにあった `Closes #<issue 番号>` は **使わない**。Requirement Issue は Document マージ時点では閉じず、後続レイヤー（Specification → Architecture → 実装）が完了するまで open のままにする方針。代わりに上記「起点」表記を入れることで、`aigile-mark-doc-fixed` ワークフローが PR 本文を regex でパースして起点 Issue を解決できる。
 
 ## 一般原則
 

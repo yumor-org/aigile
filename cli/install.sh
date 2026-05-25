@@ -182,9 +182,12 @@ main() {
   log_step ".github/workflows/aigile-specification-doc-writer.md (gh aw)"
   log_step ".github/workflows/aigile-architecture-doc-writer.md  (gh aw)"
   log_step ".github/workflows/aigile-assign-doc-reviewers.yml    (Actions)"
-  log_step "labels: aigile:issue:requirement, aigile:issue:requirement:ready,"
-  log_step "        aigile:doc:requirement, aigile:doc:specification,"
-  log_step "        aigile:doc:architecture, automation"
+  log_step ".github/workflows/aigile-mark-doc-fixed.yml          (Actions)"
+  log_step "labels: aigile:issue:req, aigile:issue:status:req-analyzed,"
+  log_step "        aigile:issue:status:req-fixed, aigile:issue:status:spec-fixed,"
+  log_step "        aigile:issue:status:arch-fixed,"
+  log_step "        aigile:pr:req, aigile:pr:spec, aigile:pr:arch,"
+  log_step "        automation"
   printf '\n' >&2
 
   if [ "$assume_yes" -ne 1 ] && ! confirm 'Proceed?' 'y'; then
@@ -220,14 +223,22 @@ main() {
   install_file "$src/.github/workflows/aigile-specification-doc-writer.md" ".github/workflows/aigile-specification-doc-writer.md"
   install_file "$src/.github/workflows/aigile-architecture-doc-writer.md"  ".github/workflows/aigile-architecture-doc-writer.md"
   install_file "$src/.github/workflows/aigile-assign-doc-reviewers.yml"    ".github/workflows/aigile-assign-doc-reviewers.yml"
+  install_file "$src/.github/workflows/aigile-mark-doc-fixed.yml"          ".github/workflows/aigile-mark-doc-fixed.yml"
 
   log_info "Creating GitHub labels..."
-  ensure_label "aigile:issue:requirement"       "0E8A16" "aigile Requirement Issue (追加の要求)"
-  ensure_label "aigile:issue:requirement:ready" "1D76DB" "Requirement Document 作成準備が整った Issue"
-  ensure_label "aigile:doc:requirement"         "5319E7" "aigile Requirement Document PR"
-  ensure_label "aigile:doc:specification"       "5319E7" "aigile Specification Document PR"
-  ensure_label "aigile:doc:architecture"        "5319E7" "aigile Architecture Document PR"
-  ensure_label "automation"                     "BFD4F2" "Automated PR / Issue"
+  # Issue 識別ラベル
+  ensure_label "aigile:issue:req"                 "0E8A16" "aigile Requirement Issue (追加の要求)"
+  # Issue ステータスラベル（カスケードトリガー）
+  ensure_label "aigile:issue:status:req-analyzed" "1D76DB" "Requirement Analyzer 完了 (Req Doc Writer の発火条件)"
+  ensure_label "aigile:issue:status:req-fixed"    "0E8A16" "Requirement Document が main に確定 (Spec Writer の発火条件)"
+  ensure_label "aigile:issue:status:spec-fixed"   "0E8A16" "Specification Document が main に確定 (Arch Writer の発火条件)"
+  ensure_label "aigile:issue:status:arch-fixed"   "0E8A16" "Architecture Document が main に確定 (Doc カスケード終端)"
+  # PR 識別ラベル（レビュアー割り当てに使用）
+  ensure_label "aigile:pr:req"                    "5319E7" "aigile Requirement Document PR"
+  ensure_label "aigile:pr:spec"                   "5319E7" "aigile Specification Document PR"
+  ensure_label "aigile:pr:arch"                   "5319E7" "aigile Architecture Document PR"
+  # 汎用マーカー
+  ensure_label "automation"                       "BFD4F2" "Automated PR / Issue"
 
   printf '\n' >&2
   log_info "Done."

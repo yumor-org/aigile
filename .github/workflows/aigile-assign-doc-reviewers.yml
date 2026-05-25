@@ -10,9 +10,9 @@ name: aigile Assign Document Reviewers
 #   - 本ワークフロー:                              PR の label を見てレビュアーを割り当てる
 #
 # 対応レイヤー:
-#   ラベル `aigile:doc:requirement`   → layers.requirement.approvers
-#   ラベル `aigile:doc:specification` → layers.specification.approvers
-#   ラベル `aigile:doc:architecture`  → layers.architecture.approvers
+#   ラベル `aigile:pr:req`   → layers.requirement.approvers
+#   ラベル `aigile:pr:spec` → layers.specification.approvers
+#   ラベル `aigile:pr:arch`  → layers.architecture.approvers
 #
 # pull_request_target を使う理由: base ブランチの定義と stakeholders.yml で実行することで、
 # フォーク PR が承認者リストを書き換える攻撃面を排除する（PR 提供コードは実行しない）。
@@ -32,17 +32,17 @@ jobs:
       (
         (github.event.action == 'opened' || github.event.action == 'reopened')
         && (
-          contains(github.event.pull_request.labels.*.name, 'aigile:doc:requirement')
-          || contains(github.event.pull_request.labels.*.name, 'aigile:doc:specification')
-          || contains(github.event.pull_request.labels.*.name, 'aigile:doc:architecture')
+          contains(github.event.pull_request.labels.*.name, 'aigile:pr:req')
+          || contains(github.event.pull_request.labels.*.name, 'aigile:pr:spec')
+          || contains(github.event.pull_request.labels.*.name, 'aigile:pr:arch')
         )
       )
       || (
         github.event.action == 'labeled'
         && (
-          github.event.label.name == 'aigile:doc:requirement'
-          || github.event.label.name == 'aigile:doc:specification'
-          || github.event.label.name == 'aigile:doc:architecture'
+          github.event.label.name == 'aigile:pr:req'
+          || github.event.label.name == 'aigile:pr:spec'
+          || github.event.label.name == 'aigile:pr:arch'
         )
       )
     runs-on: ubuntu-latest
@@ -62,11 +62,11 @@ jobs:
           # ラベル → stakeholders.yml の layers キーへのマッピング。
           # 複数の aigile:doc:* ラベルが同時に付与されることは想定外（PR は単一レイヤー）。
           # 万一複数あった場合は最上位レイヤー (requirement) を優先する。
-          if echo "$LABELS" | grep -q '"aigile:doc:requirement"'; then
+          if echo "$LABELS" | grep -q '"aigile:pr:req"'; then
             key=requirement
-          elif echo "$LABELS" | grep -q '"aigile:doc:specification"'; then
+          elif echo "$LABELS" | grep -q '"aigile:pr:spec"'; then
             key=specification
-          elif echo "$LABELS" | grep -q '"aigile:doc:architecture"'; then
+          elif echo "$LABELS" | grep -q '"aigile:pr:arch"'; then
             key=architecture
           else
             echo "::notice::No aigile:doc:* label found on PR; skipping reviewer assignment."

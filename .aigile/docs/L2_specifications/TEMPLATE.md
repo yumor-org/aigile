@@ -82,7 +82,7 @@ depends_on:
 Specification Document を作成・更新する後段ワークフローは、以下のメタデータで PR を発行する想定:
 
 - **タイトル**: `[Specification] <タイトル>`
-- **ラベル**: `aigile:doc:specification`, `automation`
+- **ラベル**: `aigile:pr:spec`, `automation`
 - **ベースブランチ**: `main`
 - **本文テンプレート**:
 

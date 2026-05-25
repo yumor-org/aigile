@@ -87,7 +87,7 @@ flowchart LR
 Architecture Document を作成・更新する後段ワークフローは、以下のメタデータで PR を発行する想定:
 
 - **タイトル**: `[Architecture] <タイトル>`
-- **ラベル**: `aigile:doc:architecture`, `automation`
+- **ラベル**: `aigile:pr:arch`, `automation`
 - **ベースブランチ**: `main`
 - **本文テンプレート**:
 
