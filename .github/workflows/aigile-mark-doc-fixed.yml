@@ -1,0 +1,100 @@
+name: aigile Mark Document Fixed
+
+# Document PR がマージされた際に、起点 Requirement Issue へ確定ラベルを付与する通常 Actions ワークフロー。
+# 役割:
+#   - aigile:pr:req   付き PR の merged → 起点 Issue に `aigile:issue:status:req-fixed`  を付与
+#   - aigile:pr:spec 付き PR の merged → 起点 Issue に `aigile:issue:status:spec-fixed` を付与
+#   - aigile:pr:arch  付き PR の merged → 起点 Issue に `aigile:issue:status:arch-fixed` を付与
+#
+# このラベル付与が gh-aw 側の次レイヤーワークフロー（specification-doc-writer /
+# architecture-doc-writer）を起動するトリガーになる。
+#
+# 起点 Requirement Issue の解決方式:
+#   全 Doc PR の本文に必ず含まれる「Requirement Issue #N」表記を正規表現で抽出する。
+#   Document = Source of Truth 原則は、入力ソース（マージ済み Document）の側で担保しており、
+#   トレース情報のキャリアとしては PR 本文の規約を採用する（実装をシンプルに保つため）。
+#
+# pull_request_target を使う理由: ベースブランチ上の権限で実行することで、
+# フォーク PR が本文に細工して任意 Issue にラベル付与を誘発する攻撃面を排除する
+# （PR 提供コードは実行しない）。
+
+on:
+  pull_request_target:
+    types: [closed]
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: read
+
+jobs:
+  mark:
+    if: |
+      github.event.pull_request.merged == true
+      && github.event.pull_request.base.ref == 'main'
+      && (
+        contains(github.event.pull_request.labels.*.name, 'aigile:pr:req')
+        || contains(github.event.pull_request.labels.*.name, 'aigile:pr:spec')
+        || contains(github.event.pull_request.labels.*.name, 'aigile:pr:arch')
+      )
+    runs-on: ubuntu-latest
+    steps:
+      - name: Determine target fixed-label from PR labels
+        id: layer
+        env:
+          LABELS: ${{ toJSON(github.event.pull_request.labels.*.name) }}
+        run: |
+          set -euo pipefail
+          # 複数の aigile:doc:* ラベルが同時に付与されることは想定外（PR は単一レイヤー）。
+          # 万一複数あった場合は最上位レイヤー (requirement) を優先する。
+          if echo "$LABELS" | grep -q '"aigile:pr:req"'; then
+            target_label=aigile:issue:status:req-fixed
+          elif echo "$LABELS" | grep -q '"aigile:pr:spec"'; then
+            target_label=aigile:issue:status:spec-fixed
+          elif echo "$LABELS" | grep -q '"aigile:pr:arch"'; then
+            target_label=aigile:issue:status:arch-fixed
+          else
+            echo "::notice::No aigile:doc:* label found on PR; skipping."
+            target_label=
+          fi
+          echo "target_label=$target_label" >> "$GITHUB_OUTPUT"
+
+      - name: Extract source Requirement Issue numbers from PR body
+        id: resolve
+        if: steps.layer.outputs.target_label != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+          # PR 本文を取得し、「Requirement Issue #N」表記を抽出する。
+          # この表記は aigile の全 Doc PR テンプレートで必須（requirement / specification /
+          # architecture すべて）。複数 Issue 列挙にも対応する（カンマ・空白区切り）。
+          body=$(gh pr view "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --json body --jq '.body // ""')
+          # 例: "起点: Requirement Issue #42, #43" → 42, 43
+          # まず「Requirement Issue」の出現位置以降を切り出し、続く #N 群を集める。
+          issues=$(printf '%s\n' "$body" \
+                   | grep -oE 'Requirement Issue[^\n]*' \
+                   | grep -oE '#[0-9]+' \
+                   | tr -d '#' \
+                   | sort -un \
+                   | paste -sd, -)
+          if [ -z "$issues" ]; then
+            echo "::notice::No 'Requirement Issue #N' reference found in PR body; skipping."
+          fi
+          echo "issues=$issues" >> "$GITHUB_OUTPUT"
+
+      - name: Add fixed label to source Requirement Issues
+        if: steps.resolve.outputs.issues != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUES: ${{ steps.resolve.outputs.issues }}
+          TARGET_LABEL: ${{ steps.layer.outputs.target_label }}
+        run: |
+          set -euo pipefail
+          IFS=',' read -ra ARR <<< "$ISSUES"
+          for n in "${ARR[@]}"; do
+            echo "Adding label '$TARGET_LABEL' to issue #$n"
+            # 既に同じラベルが付いていても gh issue edit は冪等に成功する。
+            gh issue edit "$n" --repo "$GITHUB_REPOSITORY" --add-label "$TARGET_LABEL"
+          done

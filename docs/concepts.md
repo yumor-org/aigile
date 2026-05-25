@@ -48,7 +48,7 @@ Issue は性質によって 2 種に分かれます。両者は最終的に Docu
 
 - 起票者: 主に人間（PdM、利用者、開発者等）
 - 終端状態:
-  - **Accepted-Closed**: Document に取り込まれてマージ → 役目を完遂
+  - **Accepted-Closed**: Document に取り込まれてマージ → 役目を完遂（**注**: 現在は実装フェーズ完了まで open のまま保持する運用に変更され、Req Doc PR マージ時点では Close せず `aigile:issue:status:req-fixed` などのステータスラベルで進行を表現する。Accepted-Closed の正式タイミング再定義は [workflow.md](workflow.md) と整合させて将来見直し予定）
   - **Rejected-Closed**: 取り込まれずに却下 → 却下記録として閉じる
 - フロー: Issue → AI 分析 → Document PR → 承認 → マージ
 

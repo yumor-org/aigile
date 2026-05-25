@@ -62,22 +62,26 @@ curl -fsSL https://raw.githubusercontent.com/yumor-org/aigile/main/cli/install.s
 | `.aigile/docs/L2_specifications/TEMPLATE.md` | Specification Document 格納先とテンプレート |
 | `.aigile/docs/L3_architectures/TEMPLATE.md` | Architecture Document 格納先とテンプレート |
 | `.github/ISSUE_TEMPLATE/aigile-requirement.yml` | Requirement Issue テンプレート |
-| `.github/workflows/aigile-requirement-analyzer.md` | Requirement Issue を分析して Ready ラベルを付与する Agentic Workflow |
-| `.github/workflows/aigile-requirement-doc-writer.md` | Ready ラベル付与で起動し、Requirement Document PR を発行する Agentic Workflow |
-| `.github/workflows/aigile-specification-doc-writer.md` | Req Doc PR マージで起動し、Specification Document の検証・更新 PR を発行する Agentic Workflow |
-| `.github/workflows/aigile-architecture-doc-writer.md` | Spec Doc PR マージで起動し、Architecture Document の検証・更新 PR を発行する Agentic Workflow |
-| `.github/workflows/aigile-assign-doc-reviewers.yml` | Document PR のラベルから `stakeholders.yml` を参照してレビュアーをアサインする通常 Actions ワークフロー |
+| `.github/workflows/aigile-requirement-analyzer.md` | Requirement Issue を分析し、Ready 判定時に `aigile:issue:status:req-analyzed` ラベルを付与する Agentic Workflow |
+| `.github/workflows/aigile-requirement-doc-writer.md` | `aigile:issue:status:req-analyzed` 付与で起動し、Requirement Document PR を発行する Agentic Workflow |
+| `.github/workflows/aigile-specification-doc-writer.md` | 起点 Requirement Issue に `aigile:issue:status:req-fixed` が付与されると起動し、Specification Document の検証・更新 PR を発行する Agentic Workflow |
+| `.github/workflows/aigile-architecture-doc-writer.md` | 起点 Requirement Issue に `aigile:issue:status:spec-fixed` が付与されると起動し、Architecture Document の検証・更新 PR を発行する Agentic Workflow |
+| `.github/workflows/aigile-assign-doc-reviewers.yml` | Document PR のラベル (`aigile:pr:*`) から `stakeholders.yml` を参照してレビュアーをアサインする通常 Actions ワークフロー |
+| `.github/workflows/aigile-mark-doc-fixed.yml` | Document PR のマージを検知して、起点 Requirement Issue に `aigile:issue:status:req-fixed` / `spec-fixed` / `arch-fixed` を自動付与する通常 Actions ワークフロー。下位レイヤーワークフローのカスケードトリガーになる |
 
 ### 作成されるラベル
 
-| ラベル | 用途 |
-|---|---|
-| `aigile:issue:requirement` | Requirement Issue（追加の要求）の識別 |
-| `aigile:issue:requirement:ready` | Requirement Document 作成準備が整った Issue |
-| `aigile:doc:requirement` | Requirement Document PR の識別（レビュアー割り当てに使用） |
-| `aigile:doc:specification` | Specification Document PR の識別 |
-| `aigile:doc:architecture` | Architecture Document PR の識別 |
-| `automation` | aigile ワークフローが自動発行する PR / Issue の汎用マーカー |
+| ラベル | 付与先 | 用途 |
+|---|---|---|
+| `aigile:issue:req` | Issue | Requirement Issue（追加の要求）の識別 |
+| `aigile:issue:status:req-analyzed` | Issue | Requirement Analyzer 完了。**Requirement Document Writer のトリガー** |
+| `aigile:issue:status:req-fixed` | Issue | Requirement Document が main に確定。**Specification Document Writer のトリガー** |
+| `aigile:issue:status:spec-fixed` | Issue | Specification Document が main に確定。**Architecture Document Writer のトリガー** |
+| `aigile:issue:status:arch-fixed` | Issue | Architecture Document が main に確定（Doc カスケード終端のマーカー） |
+| `aigile:pr:req` | PR | Requirement Document PR の識別（レビュアー割り当てに使用） |
+| `aigile:pr:spec` | PR | Specification Document PR の識別 |
+| `aigile:pr:arch` | PR | Architecture Document PR の識別 |
+| `automation` | PR / Issue | aigile ワークフローが自動発行する成果物の汎用マーカー |
 
 ## init 後にやること
 

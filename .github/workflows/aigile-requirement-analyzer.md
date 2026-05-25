@@ -1,9 +1,9 @@
 ---
 name: aigile Requirement Analyzer
 description: |
-  Requirement Issue (label: aigile:issue:requirement) に `@aigile` メンション付きコメントが投稿された際に発火する自律ワークフロー。
+  Requirement Issue (label: aigile:issue:req) に `@aigile` メンション付きコメントが投稿された際に発火する自律ワークフロー。
   Issue の記載事項やコメントを確認し、情報不足なら Issue コメントで質問をする。
-  情報が十分揃い、かつ既存 Requirement Document との重複・コンフリクトが無い場合は、Issue に `aigile:issue:requirement:ready` ラベルを付与する。
+  情報が十分揃い、かつ既存 Requirement Document との重複・コンフリクトが無い場合は、Issue に `aigile:issue:status:req-analyzed` ラベルを付与する。
   Requirement Document の作成は本ワークフローの責務外（後段の別ワークフローが担う）。
 
 on:
@@ -32,9 +32,9 @@ on:
           echo "Skip: Issue state is '$ISSUE_STATE' (not open)"
           exit 1
         fi
-        # 対象 Issue が aigile:issue:requirement ラベルを持つこと
-        if ! echo "$LABELS" | grep -q '"aigile:issue:requirement"'; then
-          echo "Skip: Issue lacks aigile:issue:requirement label"
+        # 対象 Issue が aigile:issue:req ラベルを持つこと
+        if ! echo "$LABELS" | grep -q '"aigile:issue:req"'; then
+          echo "Skip: Issue lacks aigile:issue:req label"
           exit 1
         fi
         # コメント本文に @aigile メンションが含まれること
@@ -69,14 +69,14 @@ safe-outputs:
     max: 1
     target: triggering
   add-labels:
-    allowed: [aigile:issue:requirement:ready]
+    allowed: [aigile:issue:status:req-analyzed]
     max: 1
 ---
 
 # Aigile Requirement Analyzer
 
 あなたは aigile の Requirement Issue を処理する自律エージェントです。
-対象 Issue を分析し、**(A) 不明点を Issue コメントで質問する** か **(B) Issue に `aigile:issue:requirement:ready` ラベルを付与する** のいずれか **1 つだけ** を実行してください。
+対象 Issue を分析し、**(A) 不明点を Issue コメントで質問する** か **(B) Issue に `aigile:issue:status:req-analyzed` ラベルを付与する** のいずれか **1 つだけ** を実行してください。
 
 ## 文脈
 
@@ -138,7 +138,7 @@ safe-outputs:
 
 ## 🤖 aigile Requirement Analyzer
 
-@<issuer_login> さん、Requirement Issue を分析しました。`aigile:issue:requirement:ready` を付与する前に、以下を確認させてください。
+@<issuer_login> さん、Requirement Issue を分析しました。`aigile:issue:status:req-analyzed` を付与する前に、以下を確認させてください。
 
 ### これまでの整理
 
@@ -152,7 +152,7 @@ safe-outputs:
 
 ### 次のステップ
 
-ご回答を Issue コメントに追記し、改めて `aigile` をメンションしてください。本ワークフローが再分析します。情報が十分揃い、既存 Requirement Document との重複・コンフリクトが無いと判定した時点で、本 Issue に `aigile:issue:requirement:ready` ラベルを付与します。
+ご回答を Issue コメントに追記し、改めて `aigile` をメンションしてください。本ワークフローが再分析します。情報が十分揃い、既存 Requirement Document との重複・コンフリクトが無いと判定した時点で、本 Issue に `aigile:issue:status:req-analyzed` ラベルを付与します。
 
 ---
 
@@ -189,7 +189,7 @@ safe-outputs:
 
 ### 3B-2. Ready ラベルの付与
 
-重複・コンフリクトが無いと判断した場合、`add-labels` safe-output で対象 Issue に `aigile:issue:requirement:ready` を **1 件だけ** 付与する。元の `aigile:issue:requirement` ラベルは外さない（ステータスは追加であり上書きではない）。
+重複・コンフリクトが無いと判断した場合、`add-labels` safe-output で対象 Issue に `aigile:issue:status:req-analyzed` を **1 件だけ** 付与する。元の `aigile:issue:req` ラベルは外さない（ステータスは追加であり上書きではない）。
 
 ### 3B-3. Issue への通知コメント
 
@@ -200,9 +200,9 @@ safe-outputs:
 
 ## 🤖 aigile Requirement Analyzer
 
-Requirement Issue の情報が十分揃い、既存 Requirement Document との重複・コンフリクトも検出されなかったため、`aigile:issue:requirement:ready` ラベルを付与しました。
+Requirement Issue の情報が十分揃い、既存 Requirement Document との重複・コンフリクトも検出されなかったため、`aigile:issue:status:req-analyzed` ラベルを付与しました。
 
-次工程（Requirement Document の作成）に進めます。再評価が必要になった場合は、本 Issue から `aigile:issue:requirement:ready` ラベルを外したうえで、改めて `aigile` をメンションしてください。
+次工程（Requirement Document の作成）に進めます。再評価が必要になった場合は、本 Issue から `aigile:issue:status:req-analyzed` ラベルを外したうえで、改めて `aigile` をメンションしてください。
 
 ---
 
